@@ -4,12 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cafetería Sur — Reseñas y menú</title>
-  <!--
-    AVISO IMPORTANTE (solo laboratorio):
-    Este archivo contiene a propósito un bug clásico de XSS por inyección de eventos HTML
-    en el contenido de reseñas (se usa innerHTML). No lo publiques en producción.
-    La página está diseñada como un sitio normal de cafetería; la vulnerabilidad no se anuncia en la UI.
-  -->
+
   <style>
     :root{
       --bg:#0f1220; --panel:#171a2b; --accent:#7c9eff; --text:#e8ebff; --muted:#aab0c6; --line:#22263b;
@@ -107,7 +102,7 @@
   </footer>
 
   <script>
-    // Sitio "normal" con un bug intencional en la publicación de reseñas.
+
     const form = document.getElementById('form-reseña');
     const lista = document.getElementById('lista-reseñas');
     const nombre = document.getElementById('nombre');
@@ -116,12 +111,8 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      // Sanitizamos SOLO el nombre (como haría un dev cuidadoso con campos visibles),
-      // pero dejamos el cuerpo de la reseña con innerHTML para permitir "formato rico" (BUG CLÁSICO ➜ XSS por eventos).
       const autor = (nombre.value || 'Anónimo').replace(/[<>]/g, '');
 
-      // Vulnerabilidad: se inserta el campo de texto del usuario usando innerHTML
-      // Permitirá atributos como onclick=..., onerror=..., etc.
       const contenedor = document.createElement('div');
       contenedor.className = 'review';
       contenedor.innerHTML = `
@@ -139,13 +130,6 @@
       nombre.value = '';
       texto.value = '';
     });
-
-    // NOTA: No implementamos un modo seguro en la UI para no "delatar" el bug.
-    // Si deseas una variante segura, sustituye la línea de innerHTML por:
-    //   const contenido = document.createElement('div');
-    //   contenido.className = 'contenido';
-    //   contenido.textContent = texto.value; // ✅ seguro
-    //   contenedor.appendChild(contenido);
   </script>
 </body>
 </html>
