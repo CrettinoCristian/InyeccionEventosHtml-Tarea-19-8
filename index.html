@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cafetería Sur — Reseñas y menú</title>
+  <!--
+    AVISO IMPORTANTE (solo laboratorio):
+    Este archivo contiene a propósito un bug clásico de XSS por inyección de eventos HTML
+    en el contenido de reseñas (se usa innerHTML). No lo publiques en producción.
+    La página está diseñada como un sitio normal de cafetería; la vulnerabilidad no se anuncia en la UI.
+  -->
+  <style>
+    :root{
+      --bg:#0f1220; --panel:#171a2b; --accent:#7c9eff; --text:#e8ebff; --muted:#aab0c6; --line:#22263b;
+      --good:#56d364; --bad:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; color:var(--text); background:radial-gradient(1000px 400px at 10% -10%,rgba(124,158,255,.15),transparent),linear-gradient(180deg,#0e1120,#0a0d17);}    
+    a{color:var(--accent); text-decoration:none}
+    header{border-bottom:1px solid var(--line); position:sticky; top:0; backdrop-filter:saturate(140%) blur(8px); background:rgba(15,18,32,.7)}
+    .wrap{max-width:1100px; margin:0 auto; padding:20px}
+    .brand{display:flex; align-items:center; gap:12px}
+    .brand h1{font-size:clamp(20px,3vw,28px); margin:0}
+    .brand small{color:var(--muted)}
+    main .intro{padding:26px 0}
+    .grid{display:grid; gap:16px; grid-template-columns:1fr}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .card{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; box-shadow:0 12px 28px rgba(0,0,0,.25)}
+    .menu-item{display:flex; gap:14px}
+    .menu-item img{width:80px; height:80px; object-fit:cover; border-radius:12px; border:1px solid #2a2f4b}
+    .menu-item h3{margin:0 0 6px}
+    .price{color:#b3c1ff}
+    .muted{color:var(--muted)}
+    form.reseña{display:grid; gap:10px; margin-top:8px}
+    input, textarea{background:#0b0e19; color:var(--text); border:1px solid #262b49; border-radius:12px; padding:10px; font-family:inherit}
+    textarea{min-height:90px; resize:vertical}
+    button{padding:10px 14px; border-radius:12px; border:1px solid #2a2f4b; background:#111528; color:var(--text); cursor:pointer}
+    button:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.25)}
+    .reseñas-lista{display:grid; gap:12px; margin-top:12px}
+    .review{border:1px solid #262b49; background:#0b0e19; border-radius:14px; padding:12px}
+    .review h4{margin:0 0 6px; font-size:1rem}
+    footer{opacity:.8; text-align:center; padding:22px; border-top:1px solid var(--line); color:var(--muted)}
+    .tag{display:inline-block; padding:.25rem .6rem; border-radius:999px; border:1px solid #2a2f4b; color:var(--muted); font-size:.8rem}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 3h10v4a5 5 0 0 1-5 5H7V3Zm-2 0h2v9a5 5 0 0 0 5 5h3a4 4 0 1 0 0-8h-1" stroke="#7c9eff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h1>Cafetería Sur</h1>
+        <small class="muted">Granitos patagónicos, panes caseros y música suave</small>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="intro">
+      <span class="tag">Menú del día</span>
+      <div class="grid" style="margin-top:12px">
+        <article class="card menu-item">
+          <img src="https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?q=80&w=600&auto=format&fit=crop" alt="Café latte"/>
+          <div>
+            <h3>Latte sureño <span class="price">$2800</span></h3>
+            <p class="muted">Espresso blend + leche vaporizada, notas de cacao y avellanas.</p>
+          </div>
+        </article>
+        <article class="card menu-item">
+            <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=600&auto=format&fit=crop" alt="Capuccino"/>
+            <div>
+                <h3>Capuccino clásico <span class="price">$2500</span></h3>
+                <p class="muted">Café espresso con leche espumosa y un toque de cacao.</p>
+            </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="grid" aria-labelledby="reseñas-titulo">
+      <div class="card">
+        <h2 id="reseñas-titulo">Reseñas de clientes</h2>
+        <div id="lista-reseñas" class="reseñas-lista">
+          <!-- Reseñas existentes (normales) -->
+          <div class="review">
+            <h4><span class="autor">Lucía</span> <small class="muted">— hace 2 días</small></h4>
+            <div class="contenido">El latte está increíble, y la música acompaña perfecto.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Dejá tu reseña</h2>
+        <form id="form-reseña" class="reseña" autocomplete="off">
+          <input id="nombre" name="nombre" placeholder="Tu nombre" />
+          <textarea id="texto" name="texto" placeholder="Contanos tu experiencia"></textarea>
+          <button type="submit">Publicar reseña</button>
+          <small class="muted">Al enviar, tu comentario se mostrará abajo.</small>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 Cafetería Sur · <a href="#">Instagram</a> · <a href="#">Mapa</a>
+  </footer>
+
+  <script>
+    // Sitio "normal" con un bug intencional en la publicación de reseñas.
+    const form = document.getElementById('form-reseña');
+    const lista = document.getElementById('lista-reseñas');
+    const nombre = document.getElementById('nombre');
+    const texto = document.getElementById('texto');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Sanitizamos SOLO el nombre (como haría un dev cuidadoso con campos visibles),
+      // pero dejamos el cuerpo de la reseña con innerHTML para permitir "formato rico" (BUG CLÁSICO ➜ XSS por eventos).
+      const autor = (nombre.value || 'Anónimo').replace(/[<>]/g, '');
+
+      // Vulnerabilidad: se inserta el campo de texto del usuario usando innerHTML
+      // Permitirá atributos como onclick=..., onerror=..., etc.
+      const contenedor = document.createElement('div');
+      contenedor.className = 'review';
+      contenedor.innerHTML = `
+        <h4><span class="autor"></span> <small class="muted">— ahora</small></h4>
+        <div class="contenido">${texto.value}</div>
+      `; // ❌ INSEGURO A PROPÓSITO
+
+      // Inserta autor de forma segura como texto literal
+      contenedor.querySelector('.autor').textContent = autor;
+
+      // Agrega al listado
+      lista.prepend(contenedor);
+
+      // Limpiar
+      nombre.value = '';
+      texto.value = '';
+    });
+
+    // NOTA: No implementamos un modo seguro en la UI para no "delatar" el bug.
+    // Si deseas una variante segura, sustituye la línea de innerHTML por:
+    //   const contenido = document.createElement('div');
+    //   contenido.className = 'contenido';
+    //   contenido.textContent = texto.value; // ✅ seguro
+    //   contenedor.appendChild(contenido);
+  </script>
+</body>
+</html>
