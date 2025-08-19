@@ -102,34 +102,32 @@
   </footer>
 
   <script>
+  const form = document.getElementById('form-reseña');
+  const lista = document.getElementById('lista-reseñas');
+  const nombre = document.getElementById('nombre');
+  const texto = document.getElementById('texto');
 
-    const form = document.getElementById('form-reseña');
-    const lista = document.getElementById('lista-reseñas');
-    const nombre = document.getElementById('nombre');
-    const texto = document.getElementById('texto');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    const autor = nombre.value || 'Anónimo';
+    const contenido = texto.value;
 
-      const autor = (nombre.value || 'Anónimo').replace(/[<>]/g, '');
+    const contenedor = document.createElement('div');
+    contenedor.className = 'review';
 
-      const contenedor = document.createElement('div');
-      contenedor.className = 'review';
-      contenedor.innerHTML = `
-        <h4><span class="autor"></span> <small class="muted">— ahora</small></h4>
-        <div class="contenido">${texto.value}</div>
-      `; // ❌ INSEGURO A PROPÓSITO
+    contenedor.insertAdjacentHTML(
+      'beforeend',
+      `<h4><span class="autor">${autor}</span> <small class="muted">— ahora</small></h4>
+       <div class="contenido">${contenido}</div>`
+    );
 
-      // Inserta autor de forma segura como texto literal
-      contenedor.querySelector('.autor').textContent = autor;
+    lista.prepend(contenedor);
 
-      // Agrega al listado
-      lista.prepend(contenedor);
+    nombre.value = '';
+    texto.value = '';
+  });
+</script>
 
-      // Limpiar
-      nombre.value = '';
-      texto.value = '';
-    });
-  </script>
 </body>
 </html>
